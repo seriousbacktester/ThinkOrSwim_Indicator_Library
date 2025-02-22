@@ -1,0 +1,11 @@
+declare lower;
+
+input BBLength = 30;
+input width_threshold = 0.3;
+
+plot threshold = width_threshold;
+threshold.assignValueColor(color.GrAY);
+
+plot BBWidth = (BollingerBands(length = BBLength).UpperBand - BollingerBands(length=BBLength).LowerBand) / BollingerBands(length = BBLength);
+
+BBWidth.AssignValueColor(if BBWidth > width_threshold then Color.GREEN else getcolor(8));

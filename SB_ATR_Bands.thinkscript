@@ -1,0 +1,10 @@
+declare upper;
+
+input Upper_ATR_Mult = 1.0;
+input Lower_ATR_Mult = 2.5;
+
+def upper_gap = UPPer_ATR_Mult * ATR()[1];
+def lower_gap = Lower_ATR_Mult * ATR()[1];
+
+plot lower_band = open - lower_gap;
+plot upper_band = open + upper_gap;

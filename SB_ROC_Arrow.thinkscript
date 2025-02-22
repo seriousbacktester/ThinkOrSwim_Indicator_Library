@@ -1,0 +1,13 @@
+declare upper;
+
+input ROC_Threshold = -20;
+
+
+def long1 = RateOfChange() < -20;
+def long2 = RateOfChange() > RateOfChange()[3];
+def long3 = RateOfChange() > RateOfChange()[1];
+
+
+plot BB_ROC_Buy = long1 and long2 and long3;
+
+BB_ROC_Buy.setPaintingStrategy(paintingStrategy.BOOLEAN_ARROW_UP);
