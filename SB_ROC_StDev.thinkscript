@@ -1,0 +1,63 @@
+# thinkorswim thinkscript code
+# Indicator: Standard Deviation of Rate of Change
+# Version: 1.0
+# Description: Calculates and plots the standard deviation of the Rate of Change (ROC)
+#              of a specified price type over a given period.
+
+declare lower; # Plots in a lower subgraph
+
+# --- Input Parameters ---
+input lengthROC = 14;
+input priceSource = {
+    default CLOSE,
+    OPEN,
+    HIGH,
+    LOW
+};
+
+input lengthStDev = 200;
+
+# --- Input Validation and Data Preparation ---
+Assert(lengthROC >= 1, "'Length for ROC' must be 1 or greater.");
+Assert(lengthStDev >= 1, "'Length for StDev' must be 1 or greater.");
+
+def dataPrice;
+switch (priceSource) {
+case OPEN:
+    dataPrice = open;
+case HIGH:
+    dataPrice = high;
+case LOW:
+    dataPrice = low;
+case CLOSE:
+    dataPrice = close;
+# No default needed as enum restricts choices and Assert handles invalid lengths.
+}
+
+# --- Calculations ---
+
+# 1. Calculate Rate of Change (ROC)
+# The built-in RateOfChange function is: (price / price[length] - 1) * 100
+# This is the percentage difference between the current price and the price 'lengthROC' bars ago.
+def rocValue = RateOfChange(price = dataPrice, length = lengthROC);
+
+# 2. Calculate Standard Deviation of the ROC
+# The StDev function calculates the standard deviation of 'rocValue' over 'lengthStDev' bars.
+def stDevOfROC = StDev(data = rocValue, length = lengthStDev);
+
+# --- Plotting ---
+plot StDevROC = stDevOfROC;
+StDevROC.SetDefaultColor(GetColor(1)); # Cyan is GetColor(1)
+StDevROC.SetPaintingStrategy(PaintingStrategy.LINE);
+StDevROC.SetLineWeight(2);
+# StDevROC.SetStyle(Curve.SHORT_DASH); # Optional: uncomment for a dashed line
+
+# --- Label (Optional) ---
+# Displays the current value of the indicator along with its parameters in the chart's status string (top-left)
+AddLabel(
+    yes, # Show the label
+    "StDev of ROC(" + lengthROC + ", " + priceSource + ", " + lengthStDev + "): " + Round(stDevOfROC, 2),
+    StDevROC.TakeValueColor() # Use the plot's color for the label
+);
+
+# --- End of Code ---
