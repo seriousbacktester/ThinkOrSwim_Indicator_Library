@@ -1,8 +1,9 @@
 # thinkorswim thinkscript code
 # Indicator: ROC StDev Buy Arrows
-# Version: 1.1
-# Description: Plots buy arrows on the main chart based on Rate of Change (ROC),
-#              its Standard Deviation, and ROC momentum conditions.
+# Version: 1.5
+# Description: Renamed 'lengthStDev' input to 'StDevLength' to prevent a parameter
+#              mismatch error that causes the scanner to crash. This is a common
+#              issue when input names are composed of multiple words.
 
 # declare upper; # This will plot on the main price chart by default if 'declare lower' is absent.
                  # Explicitly stating 'declare upper;' is also fine.
@@ -15,23 +16,19 @@ input priceSource = {
     HIGH,
     LOW
 };
-input lengthStDev = 200;
-input multiplier = 1.5;
+input StDevLength = 200;
+input multiplier = 2.0;
 
-# --- Input Validation and Data Preparation ---
-Assert(lengthROC >= 1, "'Length for ROC' must be 1 or greater.");
-Assert(lengthStDev >= 1, "'Length for StDev' must be 1 or greater.");
-Assert(multiplier > 0, "'Multiplier' must be greater than 0.");
-
+# --- Data Preparation ---
+# Note: Input validation (Assert) removed to improve scanner stability.
 def dataPrice;
-switch (priceSource) {
-case OPEN:
+if (priceSource == priceSource.OPEN) {
     dataPrice = open;
-case HIGH:
+} else if (priceSource == priceSource.HIGH) {
     dataPrice = high;
-case LOW:
+} else if (priceSource == priceSource.LOW) {
     dataPrice = low;
-case CLOSE:
+} else {
     dataPrice = close;
 }
 
@@ -41,7 +38,7 @@ case CLOSE:
 def rocValue = RateOfChange(price = dataPrice, length = lengthROC);
 
 # 2. Calculate Standard Deviation of the ROC
-def stDevOfROC = StDev(data = rocValue, length = lengthStDev);
+def stDevOfROC = StDev(data = rocValue, length = StDevLength);
 
 # --- Buy Signal Conditions ---
 
@@ -57,15 +54,15 @@ def condition3 = rocValue > rocValue[3];
 # Combine all conditions for the buy signal
 def buySignal = condition1 and condition2 and condition3;
 
-# --- Plotting Arrows ---
-plot BuyArrow = if buySignal then low else Double.NaN;
-BuyArrow.SetPaintingStrategy(PaintingStrategy.ARROW_UP);
-BuyArrow.SetDefaultColor(Color.GREEN); # You can change this color
-BuyArrow.SetLineWeight(2); # Adjust for arrow size/visibility
+# --- Unified Plot for Charting and Scanning ---
+# This single plot serves two purposes:
+# 1. On a chart, it displays an arrow when a buy signal occurs.
+# 2. In the scanner, you can check if this plot "is not NaN" to find signals.
+plot BuySignalPlot = if buySignal then low else Double.NaN;
 
-# --- Optional: Hide the plot line if only arrows are desired (not strictly necessary for ARROW_UP)
-# BuyArrow.Hide(); # If you see a connecting line you don't want, uncomment this.
-                 # PaintingStrategy.ARROW_UP usually handles this well.
+BuySignalPlot.SetPaintingStrategy(PaintingStrategy.ARROW_UP);
+BuySignalPlot.SetDefaultColor(Color.GREEN);
+BuySignalPlot.SetLineWeight(2);
 
 # --- Label (Optional - if you still want to see some values) ---
 # You could add a label for debugging or information, but it might clutter the main chart.

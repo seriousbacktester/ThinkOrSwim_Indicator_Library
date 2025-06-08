@@ -1,0 +1,38 @@
+# thinkorswim thinkscript code
+# Scanner Snippet: ROC StDev Buy Signal
+# Version: 1.0
+#
+# Description:
+# This is a standalone scanner script to be pasted directly into the
+# ThinkOrSwim stock scanner's custom formula editor. It identifies
+# buy signals based on ROC, its Standard Deviation, and momentum.
+#
+# Instructions:
+# 1. In the Stock Scanner, add a new filter: "Study" -> "Custom..."
+# 2. In the editor window, delete the default code.
+# 3. Paste this entire script into the editor.
+# 4. Click "OK". The scanner will find stocks where this condition is true.
+
+# --- User-Definable Parameters ---
+# To change these values, edit the numbers in the 'def' statements below.
+def lengthROC = 14;
+def StDevLength = 200;
+def multiplier = 2.0;
+def lookbackPeriod = 20; # How many bars back to check for a signal
+# Note: priceSource is hardcoded to 'close' for scanner compatibility.
+def price = close;
+
+# --- Core Calculations ---
+def rocValue = RateOfChange(price = price, length = lengthROC);
+def stDevOfROC = StDev(data = rocValue, length = StDevLength);
+
+# --- Buy Signal Conditions ---
+def condition1 = rocValue < multiplier * (-stDevOfROC);
+def condition2 = rocValue > rocValue[1];
+def condition3 = rocValue > rocValue[3];
+def buySignal = condition1 and condition2 and condition3;
+
+# --- Final Plot for Scanner ---
+# The scanner requires a plot statement for the final condition.
+# This checks if the buySignal was true at least once within the lookbackPeriod.
+plot scan = Sum(buySignal, lookbackPeriod) > 0;
